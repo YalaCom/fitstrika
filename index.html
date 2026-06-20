@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ФИТ | Премиум Расчет</title>
+    <!-- Подключаем красивый шрифт для премиального вида -->
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --gold: #D4AF37;
+            --gold-light: #F3E5AB;
+            --burgundy: #6A040F;
+            --burgundy-dark: #370617;
+            --black: #030303;
+            --panel-bg: rgba(20, 20, 20, 0.65);
+            --border-color: rgba(212, 175, 55, 0.25);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--black);
+            color: #ffffff;
+            font-family: 'Montserrat', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 40px 20px;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* Абстрактный анимированный фон */
+        .abstract-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: -1;
+            background: radial-gradient(circle at 15% 50%, var(--burgundy-dark), transparent 50%),
+                        radial-gradient(circle at 85% 30%, rgba(212, 175, 55, 0.05), transparent 50%);
+            filter: blur(60px);
+            animation: pulseBg 10s infinite alternate;
+        }
+
+        @keyframes pulseBg {
+            0% { transform: scale(1); opacity: 0.8; }
+            100% { transform: scale(1.1); opacity: 1; }
+        }
+
+        .container {
+            width: 100%;
+            max-width: 550px;
+            animation: slideUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            opacity: 0;
+            transform: translateY(30px);
+        }
+
+        .history-container {
+            width: 100%;
+            max-width: 800px;
+            margin-top: 40px;
+            animation: slideUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.2s forwards;
+            opacity: 0;
+            transform: translateY(30px);
+        }
+
+        @keyframes slideUp {
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .glass-panel {
+            background: var(--panel-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--border-color);
+            border-radius: 24px;
+            padding: 40px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5), inset 0 0 0 1px rgba(255,255,255,0.05);
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 36px;
+            font-weight: 800;
+            letter-spacing: 6px;
+            margin-bottom: 30px;
+            background: linear-gradient(45deg, var(--gold-light), var(--gold));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-transform: uppercase;
+        }
+
+        .input-group {
+            margin-bottom: 30px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 12px;
+            font-size: 13px;
+            color: #aaa;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-weight: 600;
+        }
+
+        input[type="number"] {
+            width: 100%;
+            padding: 18px 20px;
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            color: var(--gold-light);
+            font-size: 20px;
+            font-family: 'Montserrat', sans-serif;
+            outline: none;
+            transition: all 0.3s ease;
+            box-shadow: inset 0 2px 10px rgba(0,0,0,0.5);
+        }
+
+        input[type="number"]:focus {
+            border-color: var(--gold);
+            box-shadow: 0 0 20px rgba(212, 175, 55, 0.2), inset 0 2px 10px rgba(0,0,0,0.5);
+        }
+
+        input[type="number"]::placeholder {
+            color: #555;
+        }
+
+        /* Премиальный переключатель (3 ползунка) */
+        .speed-selector {
+            display: flex;
+            background: rgba(0, 0, 0, 0.6);
+            border-radius: 16px;
+            padding: 5px;
+            border: 1px solid var(--border-color);
+            position: relative;
+        }
+
+        .speed-option {
+            flex: 1;
+            text-align: center;
+            padding: 15px 5px;
+            cursor: pointer;
+            border-radius: 12px;
+            font-size: 13px;
+            font-weight: 600;
+            color: #777;
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            position: relative;
+            z-index: 2;
+        }
+
+        .speed-option.active {
+            color: var(--black);
+        }
+
+        /* Анимированная плашка (ползунок) */
+        .slider-bg {
+            position: absolute;
+            top: 5px;
+            bottom: 5px;
+            width: calc(33.333% - 3.3px);
+            background: linear-gradient(135deg, var(--gold), #AA8020);
+            border-radius: 12px;
+            z-index: 1;
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            box-shadow: 0 4px 15px rgba(212, 175, 55, 0.3);
+        }
+
+        button.calc-btn {
+            width: 100%;
+            padding: 20px;
+            margin-top: 10px;
+            background: linear-gradient(135deg, var(--burgundy), #4A000A);
+            color: #fff;
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 16px;
+            font-size: 16px;
+            font-weight: 800;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 10px 20px rgba(106, 4, 15, 0.4);
+        }
+
+        button.calc-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 25px rgba(106, 4, 15, 0.6);
+            background: linear-gradient(135deg, #8A0514, var(--burgundy));
+        }
+
+        button.calc-btn:active {
+            transform: translateY(1px);
+        }
+
+        .result-box {
+            margin-top: 30px;
+            text-align: center;
+            opacity: 0;
+            transform: translateY(10px);
+            transition: all 0.5s ease;
+            display: none;
+        }
+
+        .result-box.show {
+            display: block;
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .result-label {
+            font-size: 14px;
+            color: #aaa;
+            letter-spacing: 1px;
+            margin-bottom: 5px;
+        }
+
+        .result-time {
+            font-size: 42px;
+            font-weight: 800;
+            color: var(--gold);
+            text-shadow: 0 0 20px rgba(212, 175, 55, 0.4);
+        }
+
+        /* Таблица истории */
+        .history-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--gold-light);
+            margin-bottom: 25px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        .table-wrapper {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            white-space: nowrap;
+        }
+
+        th, td {
+            padding: 18px 15px;
+            text-align: left;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        th {
+            color: #888;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-weight: 600;
+        }
+
+        td {
+            font-size: 14px;
+            color: #ddd;
+        }
+
+        .col-date {
+            color: #aaa;
+            font-weight: 300;
+        }
+
+        .col-lines {
+            font-weight: 600;
+            color: #fff;
+        }
+
+        .col-badge {
+            background: rgba(212, 175, 55, 0.1);
+            color: var(--gold);
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            border: 1px solid rgba(212, 175, 55, 0.2);
+        }
+
+        .col-finish {
+            color: var(--gold);
+            font-weight: 800;
+            font-size: 16px;
+        }
+
+        /* Кнопка удаления */
+        .delete-btn {
+            background: transparent;
+            border: none;
+            color: #ff4444;
+            font-size: 26px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            padding: 0 5px;
+            line-height: 1;
+        }
+
+        .delete-btn:hover {
+            color: #ff0000;
+            transform: scale(1.2);
+            text-shadow: 0 0 15px rgba(255, 0, 0, 0.6);
+        }
+
+        /* Стили скроллбара для таблицы */
+        ::-webkit-scrollbar {
+            height: 6px;
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(0,0,0,0.2);
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: var(--burgundy);
+            border-radius: 10px;
+        }
+
+        /* --- МОБИЛЬНАЯ АДАПТАЦИЯ (ПРЕМИУМ) --- */
+        @media (max-width: 600px) {
+            body {
+                padding: 20px 10px;
+            }
+            .glass-panel {
+                padding: 25px 20px;
+                border-radius: 20px;
+            }
+            h1 {
+                font-size: 28px;
+                margin-bottom: 20px;
+            }
+            .speed-option {
+                font-size: 11px;
+                padding: 12px 2px;
+                word-wrap: break-word;
+            }
+            /* Превращаем таблицу в красивые карточки на телефоне */
+            table, thead, tbody, th, td, tr {
+                display: block;
+            }
+            thead tr {
+                display: none;
+            }
+            tr {
+                margin-bottom: 15px;
+                background: rgba(0,0,0,0.4);
+                border-radius: 16px;
+                padding: 15px;
+                border: 1px solid rgba(255,255,255,0.05);
+                box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
+            }
+            td {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 10px 0;
+                border-bottom: 1px solid rgba(255,255,255,0.05);
+                text-align: right;
+            }
+            td.col-finish {
+                border-bottom: none;
+                padding-bottom: 0;
+            }
+            td:first-child {
+                padding-top: 0;
+            }
+            /* Добавляем заголовки прямо внутрь карточек */
+            td::before {
+                content: attr(data-label);
+                font-weight: 600;
+                color: #888;
+                text-transform: uppercase;
+                font-size: 10px;
+                letter-spacing: 1px;
+                text-align: left;
+                margin-right: 15px;
+            }
+            .col-finish {
+                font-size: 18px;
+            }
+            
+            /* Удаление на мобильных */
+            .col-action {
+                position: absolute;
+                top: 15px;
+                right: 15px;
+                padding: 0 !important;
+                border: none !important;
+                display: block !important;
+            }
+            .col-action::before {
+                display: none !important;
+            }
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="abstract-bg"></div>
+
+    <div class="container">
+        <div class="glass-panel">
+            <h1>ФИТ</h1>
+            
+            <div class="input-group">
+                <label>Остаток строк на складе</label>
+                <input type="number" id="linesLeft" placeholder="0" required>
+            </div>
+
+            <div class="input-group">
+                <label>Режим работы (Скорость)</label>
+                <div class="speed-selector" id="speedSelector">
+                    <div class="slider-bg" id="sliderBg"></div>
+                    <div class="speed-option active" data-speed="800" data-name="Полный штаб" onclick="selectSpeed(0, this)">Полный штаб</div>
+                    <div class="speed-option" data-speed="650" data-name="Не полный" onclick="selectSpeed(1, this)">Не полный</div>
+                    <div class="speed-option" data-speed="550" data-name="Мало народу" onclick="selectSpeed(2, this)">Мало народу</div>
+                </div>
+            </div>
+
+            <button class="calc-btn" id="calcBtn">Рассчитать финиш</button>
+
+            <div class="result-box" id="resultBox">
+                <div class="result-label">Ориентировочное время ухода:</div>
+                <div class="result-time" id="finishTimeText">--:--</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="history-container">
+        <div class="glass-panel">
+            <div class="history-title">Журнал расчетов</div>
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>День и Время</th>
+                            <th>Остаток строк</th>
+                            <th>Штат</th>
+                            <th>Прогноз ухода</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody id="historyTableBody">
+                        <!-- Данные из базы -->
+                        <tr>
+                            <td colspan="5" style="text-align: center; color: #555;">Загрузка данных...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Подключаем Firebase SDK -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, limit, serverTimestamp, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        // Ключи из твоего проекта Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyAQHWYZ_y4FP1g_aBMbiuL_UYM_DVVGOa8",
+            authDomain: "fitstroky.firebaseapp.com",
+            projectId: "fitstroky",
+            storageBucket: "fitstroky.firebasestorage.app",
+            messagingSenderId: "272440950051",
+            appId: "1:272440950051:web:8e07de020d400dd0fde096",
+            measurementId: "G-P9VWDB14ZY"
+        };
+
+        // Инициализация
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const historyRef = collection(db, "fit_history");
+
+        // Функция удаления записи
+        window.deleteRecord = async function(id) {
+            try {
+                await deleteDoc(doc(db, "fit_history", id));
+            } catch (error) {
+                console.error("Ошибка удаления:", error);
+            }
+        };
+
+        // Глобальные переменные для скорости
+        window.currentSpeed = 800;
+        window.currentModeName = "Полный штаб";
+
+        // Анимация ползунка выбора скорости
+        window.selectSpeed = function(index, element) {
+            const slider = document.getElementById('sliderBg');
+            const options = document.querySelectorAll('.speed-option');
+            
+            // Двигаем фон (ползунок)
+            slider.style.left = `calc(${index * 33.333}% + 5px)`;
+            
+            // Обновляем цвета текста
+            options.forEach(opt => opt.classList.remove('active'));
+            element.classList.add('active');
+
+            // Сохраняем выбранные значения
+            window.currentSpeed = parseInt(element.getAttribute('data-speed'));
+            window.currentModeName = element.getAttribute('data-name');
+        };
+
+        // Функция форматирования даты (Например: "Понедельник, 14:30")
+        function getFormattedDate(date) {
+            const days = ['Воскресенье', 'Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота'];
+            const months = ['янв', 'фев', 'мар', 'апр', 'мая', 'июн', 'июл', 'авг', 'сен', 'окт', 'ноя', 'дек'];
+            
+            const dayName = days[date.getDay()];
+            const dayNum = date.getDate();
+            const monthName = months[date.getMonth()];
+            
+            const hours = date.getHours().toString().padStart(2, '0');
+            const minutes = date.getMinutes().toString().padStart(2, '0');
+
+            return `${dayName}, ${dayNum} ${monthName} в ${hours}:${minutes}`;
+        }
+
+        // Логика расчета и сохранения
+        document.getElementById('calcBtn').addEventListener('click', async () => {
+            const linesInput = document.getElementById('linesLeft');
+            const lines = parseInt(linesInput.value);
+
+            if (!lines || lines <= 0) {
+                // Премиальная анимация ошибки (тряска)
+                linesInput.style.transform = 'translateX(-10px)';
+                setTimeout(() => linesInput.style.transform = 'translateX(10px)', 100);
+                setTimeout(() => linesInput.style.transform = 'translateX(-10px)', 200);
+                setTimeout(() => linesInput.style.transform = 'translateX(0)', 300);
+                linesInput.style.borderColor = 'red';
+                setTimeout(() => linesInput.style.borderColor = 'var(--border-color)', 1500);
+                return;
+            }
+
+            // Математика (часы = строки / скорость)
+            const hoursNeeded = lines / window.currentSpeed;
+            
+            // Получаем точное время завершения
+            const now = new Date();
+            const finishTime = new Date(now.getTime() + hoursNeeded * 60 * 60 * 1000);
+            
+            const finishHours = finishTime.getHours().toString().padStart(2, '0');
+            const finishMinutes = finishTime.getMinutes().toString().padStart(2, '0');
+            const finishStr = `${finishHours}:${finishMinutes}`;
+
+            // Показываем результат
+            const resultBox = document.getElementById('resultBox');
+            document.getElementById('finishTimeText').innerText = finishStr;
+            resultBox.classList.add('show');
+
+            // Формируем красивую дату для записи
+            const recordDateStr = getFormattedDate(now);
+
+            // Сохраняем в облако
+            try {
+                await addDoc(historyRef, {
+                    timestamp: serverTimestamp(),
+                    dateString: recordDateStr,
+                    lines: lines,
+                    modeName: window.currentModeName,
+                    speedVal: window.currentSpeed,
+                    finishTime: finishStr
+                });
+                linesInput.value = ''; // Очищаем после успеха
+            } catch (error) {
+                console.error("Ошибка сохранения в Firebase:", error);
+            }
+        });
+
+        // Загрузка истории в реальном времени
+        const q = query(historyRef, orderBy("timestamp", "desc"), limit(25));
+        
+        onSnapshot(q, (snapshot) => {
+            const tbody = document.getElementById('historyTableBody');
+            tbody.innerHTML = ''; // Очищаем загрушку
+            
+            if (snapshot.empty) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: #555;">Записей пока нет. Сделайте первый расчет!</td></tr>';
+                return;
+            }
+
+            snapshot.forEach((firestoreDoc) => {
+                const data = firestoreDoc.data();
+                if (!data.dateString) return; // Игнорируем пустые записи
+
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td data-label="Время" class="col-date">${data.dateString}</td>
+                    <td data-label="Остаток" class="col-lines">${data.lines.toLocaleString('ru-RU')} стр.</td>
+                    <td data-label="Штат"><span class="col-badge">${data.modeName}</span></td>
+                    <td data-label="Прогноз" class="col-finish">${data.finishTime}</td>
+                    <td class="col-action"><button class="delete-btn" onclick="deleteRecord('${firestoreDoc.id}')">×</button></td>
+                `;
+                tbody.appendChild(tr);
+            });
+        });
+    </script>
+</body>
+</html>
